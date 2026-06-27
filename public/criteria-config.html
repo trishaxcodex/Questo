@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Question Criteria</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Question Criteria Configuration</h2>
+
+    <button onclick="saveCriteria()">
+        Save Configuration
+    </button>
+
+    <br><br>
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Select</th>
+                <th>Attribute ID</th>
+                <th>Attribute Name</th>
+            </tr>
+
+        </thead>
+
+        <tbody id="tableBody">
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+let attributes = [];
+
+async function loadAttributes(){
+
+    const response =
+    await fetch(
+        "http://localhost:3000/attributes"
+    );
+
+    attributes =
+    await response.json();
+
+    let body =
+    document.getElementById(
+        "tableBody"
+    );
+
+    body.innerHTML = "";
+
+    attributes.forEach(attr => {
+
+        body.innerHTML += `
+        <tr>
+
+            <td>
+                <input
+                    type="checkbox"
+                    value="${attr.attribute_id}">
+            </td>
+
+            <td>
+                ${attr.attribute_id}
+            </td>
+
+            <td>
+                ${attr.attribute_name}
+            </td>
+
+        </tr>
+        `;
+
+    });
+
+}
+
+async function saveCriteria(){
+
+    const checkboxes =
+    document.querySelectorAll(
+        'input[type="checkbox"]'
+    );
+
+    let selected = [];
+
+    checkboxes.forEach(box => {
+
+        selected.push({
+
+            attribute_id:
+            box.value,
+
+            is_selected:
+            box.checked ? "Y" : "N"
+
+        });
+
+    });
+
+    const response =
+    await fetch(
+        "http://localhost:3000/saveCriteria",
+        {
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:
+            JSON.stringify(selected)
+        }
+    );
+
+    const message =
+    await response.text();
+
+    alert(message);
+
+}
+
+loadAttributes();
+
+</script>
+
+</body>
+</html>

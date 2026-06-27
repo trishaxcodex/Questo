@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Add Question</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Add Question</h2>
+
+    <form id="questionForm">
+
+        <div>
+            <label>Question ID</label>
+
+            <input
+                type="text"
+                id="question_id"
+                required>
+        </div>
+
+        <br>
+
+        <div>
+            <label>Question Text</label>
+
+            <input
+                type="text"
+                id="question_text"
+                required>
+        </div>
+
+        <br>
+
+        <div>
+            <label>Attribute</label>
+
+            <select id="attribute_id"></select>
+        </div>
+
+        <br>
+
+        <div>
+            <label>Status</label>
+
+            <select id="status">
+
+                <option value="Active">
+                    Active
+                </option>
+
+                <option value="Inactive">
+                    Inactive
+                </option>
+
+            </select>
+        </div>
+
+        <br>
+
+        <button type="submit">
+            Save Question
+        </button>
+
+        <button
+            type="button"
+            onclick="window.location.href='question-master.html'">
+
+            Cancel
+
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+    let editId =
+localStorage.getItem(
+    "editQuestionId"
+);
+
+async function loadAttributes(){
+
+    const response =
+    await fetch("http://localhost:3000/attributes");
+
+    const attributes =
+    await response.json();
+
+    let dropdown =
+    document.getElementById("attribute_id");
+
+    dropdown.innerHTML = "";
+
+    attributes.forEach(attr => {
+
+        dropdown.innerHTML += `
+        <option value="${attr.attribute_id}">
+            ${attr.attribute_name}
+        </option>
+        `;
+
+    });
+
+}
+
+document
+.getElementById("questionForm")
+.addEventListener("submit", saveQuestion);
+async function loadQuestion(){
+
+    if(!editId)
+        return;
+
+    const response =
+    await fetch(
+        `http://localhost:3000/question/${editId}`
+    );
+
+    const question =
+    await response.json();
+
+    document.getElementById(
+        "question_id"
+    ).value =
+    question.question_id;
+
+    document.getElementById(
+        "question_id"
+    ).disabled =
+    true;
+
+    document.getElementById(
+        "question_text"
+    ).value =
+    question.question_text;
+
+    document.getElementById(
+        "attribute_id"
+    ).value =
+    question.attribute_id;
+
+    document.getElementById(
+        "status"
+    ).value =
+    question.status;
+
+}
+async function saveQuestion(event){
+
+    event.preventDefault();
+
+    const question = {
+
+        question_id:
+        document.getElementById("question_id").value,
+
+        question_text:
+        document.getElementById("question_text").value,
+
+        attribute_id:
+        document.getElementById("attribute_id").value,
+
+        status:
+        document.getElementById("status").value
+
+    };
+
+    let response;
+
+    if(editId){
+
+        response =
+        await fetch(
+            `http://localhost:3000/updateQuestion/${editId}`,
+            {
+                method:"PUT",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify(question)
+            }
+        );
+
+        localStorage.removeItem(
+            "editQuestionId"
+        );
+
+    }
+    else{
+
+        response =
+        await fetch(
+            "http://localhost:3000/addQuestion",
+            {
+                method:"POST",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify(question)
+            }
+        );
+
+    }
+
+    const message =
+    await response.text();
+
+    alert(message);
+
+    window.location.href =
+    "question-master.html";
+
+}
+
+loadAttributes().then(
+    () => loadQuestion()
+);
+
+</script>
+
+</body>
+</html>

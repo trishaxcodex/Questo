@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Question Master</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <h2>Question Master</h2>
+
+        <div class="actions">
+
+            <button onclick="addQuestion()">➕</button>
+
+            <button onclick="editQuestion()">✏️</button>
+
+            <button onclick="deleteQuestion()">🗑️</button>
+
+        </div>
+
+    </div>
+
+    <table id="questionTable">
+
+        <thead>
+
+            <tr>
+
+                <th>Select</th>
+
+                <th>Question ID</th>
+
+                <th>Question Text</th>
+
+                <th>Attribute ID</th>
+
+                <th>Status</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="tableBody">
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+async function loadQuestions(){
+
+    const response =
+    await fetch("http://localhost:3000/questions");
+
+    const questions =
+    await response.json();
+
+    let tableBody =
+    document.getElementById("tableBody");
+
+    tableBody.innerHTML = "";
+
+    questions.forEach(question => {
+
+        tableBody.innerHTML += `
+
+        <tr>
+
+            <td>
+                <input
+                type="checkbox"
+                value="${question.question_id}">
+            </td>
+
+            <td>${question.question_id}</td>
+
+            <td>${question.question_text}</td>
+
+            <td>${question.attribute_id}</td>
+
+            <td>${question.status}</td>
+
+        </tr>
+
+        `;
+
+    });
+
+}
+
+function addQuestion(){
+
+    window.location.href =
+    "question-form.html";
+
+}
+
+function editQuestion(){
+
+    let selected =
+    document.querySelector(
+        'input[type="checkbox"]:checked'
+    );
+
+    if(!selected){
+
+        alert(
+            "Please select a question"
+        );
+
+        return;
+
+    }
+
+    localStorage.setItem(
+        "editQuestionId",
+        selected.value
+    );
+
+    window.location.href =
+    "question-form.html";
+
+}
+
+async function deleteQuestion(){
+
+    let selected =
+    document.querySelector(
+        'input[type="checkbox"]:checked'
+    );
+
+    if(!selected){
+
+        alert(
+            "Please select a question"
+        );
+
+        return;
+
+    }
+
+    const id =
+    selected.value;
+
+    const confirmDelete =
+    confirm(
+        "Are you sure you want to delete this question?"
+    );
+
+    if(!confirmDelete)
+        return;
+
+    const response =
+    await fetch(
+        `http://localhost:3000/deleteQuestion/${id}`,
+        {
+            method:"DELETE"
+        }
+    );
+
+    const message =
+    await response.text();
+
+    alert(message);
+
+    loadQuestions();
+
+}
+
+loadQuestions();
+
+</script>
+
+</body>
+
+</html>

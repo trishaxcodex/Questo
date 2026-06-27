@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Add Attribute</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2>Add Attribute</h2>
+
+        <form id="attributeForm">
+
+            <div>
+                <label>Attribute ID</label>
+
+                <input
+                    type="text"
+                    id="attribute_id"
+                    required>
+            </div>
+
+            <br>
+
+            <div>
+                <label>Attribute Name</label>
+
+                <input
+                    type="text"
+                    id="attribute_name"
+                    required>
+            </div>
+
+            <br>
+
+            <div>
+
+                <label>Status</label>
+
+                <select id="status">
+
+                    <option value="Active">
+                        Active
+                    </option>
+
+                    <option value="Inactive">
+                        Inactive
+                    </option>
+
+                </select>
+
+            </div>
+
+            <br>
+
+            <button type="submit">
+                Save Attribute
+            </button>
+
+            <button
+                type="button"
+                onclick="window.location.href='attributes.html'">
+
+                Cancel
+
+            </button>
+
+        </form>
+
+    </div>
+
+<script>
+
+let editId =
+localStorage.getItem("editAttributeId");
+
+
+// ============================
+// LOAD ATTRIBUTE FOR EDIT
+// ============================
+
+async function loadAttribute(){
+
+    if(!editId)
+        return;
+
+    try{
+
+        const response =
+        await fetch(
+            `http://localhost:3000/attribute/${editId}`
+        );
+
+        const attribute =
+        await response.json();
+
+        document.getElementById(
+            "attribute_id"
+        ).value =
+        attribute.attribute_id;
+
+        document.getElementById(
+            "attribute_id"
+        ).disabled =
+        true;
+
+        document.getElementById(
+            "attribute_name"
+        ).value =
+        attribute.attribute_name;
+
+        document.getElementById(
+            "status"
+        ).value =
+        attribute.status;
+
+    }
+
+    catch(error){
+
+        console.log(error);
+
+        alert("Error loading attribute");
+
+    }
+
+}
+
+
+// ============================
+// SAVE ATTRIBUTE
+// ============================
+
+document
+.getElementById("attributeForm")
+.addEventListener(
+    "submit",
+    saveAttribute
+);
+
+async function saveAttribute(event){
+
+    event.preventDefault();
+
+    const attribute_id =
+    document.getElementById(
+        "attribute_id"
+    ).value;
+
+    const attribute_name =
+    document.getElementById(
+        "attribute_name"
+    ).value;
+
+    const status =
+    document.getElementById(
+        "status"
+    ).value;
+
+    try{
+
+        let response;
+
+        // EDIT MODE
+
+        if(editId){
+
+            response =
+            await fetch(
+                `http://localhost:3000/updateAttribute/${editId}`,
+                {
+                    method:"PUT",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        attribute_name,
+                        status
+
+                    })
+
+                }
+            );
+
+        }
+
+        // ADD MODE
+
+        else{
+
+            response =
+            await fetch(
+                "http://localhost:3000/addAttribute",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        attribute_id,
+                        attribute_name,
+                        status
+
+                    })
+
+                }
+            );
+
+        }
+
+        const message =
+        await response.text();
+
+        alert(message);
+
+        localStorage.removeItem(
+            "editAttributeId"
+        );
+
+        window.location.href =
+        "attributes.html";
+
+    }
+
+    catch(error){
+
+        console.log(error);
+
+        alert("Error Saving Attribute");
+
+    }
+
+}
+
+
+// ============================
+// START
+// ============================
+
+loadAttribute();
+
+</script>
+
+</body>
+
+</html>

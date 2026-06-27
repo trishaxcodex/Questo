@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Add Attribute Value</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Attribute Value</h2>
+
+    <form id="valueForm">
+
+         <div>
+
+            <label>Attribute</label>
+
+            <select id="attribute_id">
+
+            </select>
+
+        </div>
+          <br>
+        <div>
+
+            <label>Value ID</label>
+
+            <input
+            type="text"
+            id="value_id"
+            required>
+
+        </div>
+
+        <br>
+
+
+        <div>
+
+            <label>Value Name</label>
+
+            <input
+            type="text"
+            id="value_name"
+            required>
+
+        </div>
+
+        <br>
+
+        <div>
+
+            <label>Status</label>
+
+            <select id="status">
+
+                <option value="Active">
+                    Active
+                </option>
+
+                <option value="Inactive">
+                    Inactive
+                </option>
+
+            </select>
+
+        </div>
+
+        <br>
+
+     <button type="submit">
+    Save
+</button>
+
+<button
+    type="button"
+    onclick="window.location.href='attributes.html'">
+    Cancel
+</button>
+
+    </form>
+
+</div>
+
+<script>
+
+let editId =
+localStorage.getItem(
+    "editValueId"
+);
+
+async function loadAttributes(){
+
+    const response =
+    await fetch(
+        "http://localhost:3000/attributes"
+    );
+
+    const attributes =
+    await response.json();
+
+    let dropdown =
+    document.getElementById(
+        "attribute_id"
+    );
+
+    dropdown.innerHTML = "";
+
+    attributes.forEach(attr => {
+
+        dropdown.innerHTML += `
+
+        <option value="${attr.attribute_id}">
+            ${attr.attribute_name}
+        </option>
+
+        `;
+
+    });
+
+}
+
+async function loadValue(){
+
+    if(!editId)
+        return;
+
+    const response =
+    await fetch(
+        `http://localhost:3000/attributeValue/${editId}`
+    );
+
+    const value =
+    await response.json();
+
+    document.getElementById(
+        "value_id"
+    ).value =
+    value.value_id;
+
+    document.getElementById(
+        "value_id"
+    ).disabled =
+    true;
+
+    document.getElementById(
+        "attribute_id"
+    ).value =
+    value.attribute_id;
+
+    document.getElementById(
+        "value_name"
+    ).value =
+    value.value_name;
+
+    document.getElementById(
+        "status"
+    ).value =
+    value.status;
+
+}
+
+document
+.getElementById("valueForm")
+.addEventListener(
+    "submit",
+    saveValue
+);
+
+async function saveValue(event){
+
+    event.preventDefault();
+
+    const data = {
+
+        value_id:
+        document.getElementById(
+            "value_id"
+        ).value,
+
+        attribute_id:
+        document.getElementById(
+            "attribute_id"
+        ).value,
+
+        value_name:
+        document.getElementById(
+            "value_name"
+        ).value,
+
+        status:
+        document.getElementById(
+            "status"
+        ).value
+
+    };
+
+    let response;
+
+    if(editId){
+
+        response =
+        await fetch(
+            `http://localhost:3000/updateAttributeValue/${editId}`,
+            {
+                method:"PUT",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify(data)
+            }
+        );
+
+    }
+    else{
+
+        response =
+        await fetch(
+            "http://localhost:3000/addAttributeValue",
+            {
+                method:"POST",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body:JSON.stringify(data)
+            }
+        );
+
+    }
+
+    const message =
+    await response.text();
+
+    alert(message);
+
+    localStorage.removeItem(
+        "editValueId"
+    );
+
+    window.location.href =
+    "attribute-values.html";
+
+}
+
+loadAttributes().then(
+    () => loadValue()
+);
+
+</script>
+
+</body>
+
+</html>

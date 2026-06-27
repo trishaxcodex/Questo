@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Attribute Value Master</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <h2>Attribute Value Master</h2>
+
+        <div class="actions">
+
+            <button onclick="addValue()">➕</button>
+
+            <button onclick="editValue()">✏️</button>
+
+            <button onclick="deleteValue()">🗑️</button>
+
+        </div>
+
+    </div>
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>Select</th>
+
+                <th>Value ID</th>
+
+                <th>Attribute</th>
+
+                <th>Value Name</th>
+
+                <th>Status</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="tableBody">
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+async function loadValues(){
+
+    const response =
+    await fetch(
+        "http://localhost:3000/attributeValues"
+    );
+
+    const values =
+    await response.json();
+
+    let body =
+    document.getElementById(
+        "tableBody"
+    );
+
+    body.innerHTML = "";
+
+    values.forEach(value => {
+
+        body.innerHTML += `
+
+        <tr>
+
+            <td>
+
+                <input
+                type="checkbox"
+                value="${value.value_id}">
+
+            </td>
+
+            <td>${value.value_id}</td>
+
+            <td>${value.attribute_name}</td>
+
+            <td>${value.value_name}</td>
+
+            <td>${value.status}</td>
+
+        </tr>
+
+        `;
+
+    });
+
+}
+
+function addValue(){
+
+    window.location.href =
+    "attribute-value-form.html";
+
+}
+
+function editValue(){
+
+    let selected =
+    document.querySelector(
+        'input[type="checkbox"]:checked'
+    );
+
+    if(!selected){
+
+        alert(
+            "Select a value"
+        );
+
+        return;
+
+    }
+
+    localStorage.setItem(
+        "editValueId",
+        selected.value
+    );
+
+    window.location.href =
+    "attribute-value-form.html";
+
+}
+
+async function deleteValue(){
+
+    let selected =
+    document.querySelector(
+        'input[type="checkbox"]:checked'
+    );
+
+    if(!selected){
+
+        alert(
+            "Select a value"
+        );
+
+        return;
+
+    }
+
+    if(
+        !confirm(
+            "Delete this value?"
+        )
+    ) return;
+
+    const response =
+    await fetch(
+        `http://localhost:3000/deleteAttributeValue/${selected.value}`,
+        {
+            method:"DELETE"
+        }
+    );
+
+    const message =
+    await response.text();
+
+    alert(message);
+
+    loadValues();
+
+}
+
+loadValues();
+
+</script>
+
+</body>
+
+</html>

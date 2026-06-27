@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Attribute Position Configuration</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <h2>Attribute Position Configuration</h2>
+
+    </div>
+
+    <div class="database-section">
+
+        <div>
+
+            <label><b>Database Type</b></label>
+
+            <br><br>
+
+            <select id="databaseType">
+
+                <option>Education</option>
+
+                <option>Corporate</option>
+
+                <option>Recruitment</option>
+
+                <option>Certification</option>
+
+            </select>
+
+        </div>
+
+        <button
+            id="addPositionBtn">
+
+            + Add Position
+
+        </button>
+
+    </div>
+
+    <br><br>
+
+    <table id="positionTable">
+
+        <thead>
+
+            <tr>
+
+                <th width="10%">
+                    Position
+                </th>
+
+                <th width="45%">
+                    Attribute
+                </th>
+
+                <th width="25%">
+                    Attribute Type
+                </th>
+
+                <th width="20%">
+                    Action
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="tableBody">
+
+        </tbody>
+
+    </table>
+
+    <br>
+
+    <div class="footer-buttons">
+
+        <button
+            class="saveBtn">
+
+            Save Configuration
+
+        </button>
+
+        <button
+            class="cancelBtn"
+            onclick="window.location.href='index.html'">
+
+            Cancel
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+let attributes = [];
+
+const tableBody =
+document.getElementById("tableBody");
+
+
+// ================================
+// LOAD ATTRIBUTES
+// ================================
+
+async function loadAttributes(){
+
+    const response =
+    await fetch(
+        "http://localhost:3000/attributes"
+    );
+
+    attributes =
+    await response.json();
+
+    // Create first 10 rows
+
+    for(let i=1;i<=10;i++){
+
+        createRow(i);
+
+    }
+
+}
+
+
+// ================================
+// CREATE ROW
+// ================================
+
+function createRow(position){
+
+    let options =
+    `<option value="">
+        Select Attribute
+    </option>`;
+
+    attributes.forEach(attr=>{
+
+        options += `
+
+        <option
+
+            value="${attr.attribute_id}"
+
+            data-type="${attr.attribute_type}">
+
+            ${attr.attribute_name}
+
+        </option>
+
+        `;
+
+    });
+
+    tableBody.innerHTML += `
+
+    <tr>
+
+        <td>
+
+            ${position}
+
+        </td>
+
+        <td>
+
+            <select
+
+                class="attributeDropdown"
+
+                onchange="updateType(this)">
+
+                ${options}
+
+            </select>
+
+        </td>
+
+        <td>
+
+            <input
+
+                type="text"
+
+                class="typeBox"
+
+                readonly>
+
+        </td>
+
+        <td>
+
+            <button
+
+                class="deleteBtn"
+
+                onclick="deleteRow(this)">
+
+                🗑
+
+            </button>
+
+        </td>
+
+    </tr>
+
+    `;
+
+}
+
+
+// ================================
+// UPDATE ATTRIBUTE TYPE
+// ================================
+
+function updateType(dropdown){
+
+    const selected =
+
+    dropdown.options[
+
+        dropdown.selectedIndex
+
+    ];
+
+    const type =
+
+    selected.getAttribute(
+
+        "data-type"
+
+    );
+
+    const row =
+
+    dropdown.parentElement.parentElement;
+
+    row.querySelector(
+
+        ".typeBox"
+
+    ).value =
+
+    type || "";
+
+}
+
+
+// ================================
+// ADD NEW POSITION
+// ================================
+
+document
+
+.getElementById(
+
+    "addPositionBtn"
+
+)
+
+.onclick = function(){
+
+    createRow(
+
+        tableBody.rows.length + 1
+
+    );
+
+};
+
+
+// ================================
+// DELETE ROW
+// ================================
+
+function deleteRow(button){
+
+    button
+
+    .parentElement
+
+    .parentElement
+
+    .remove();
+
+    renumberRows();
+
+}
+
+
+// ================================
+// RENUMBER POSITIONS
+// ================================
+
+function renumberRows(){
+
+    const rows =
+
+    tableBody.rows;
+
+    for(
+
+        let i=0;
+
+        i<rows.length;
+
+        i++
+
+    ){
+
+        rows[i]
+
+        .cells[0]
+
+        .innerHTML =
+
+        i+1;
+
+    }
+
+}
+
+
+// ================================
+// START
+// ================================
+
+loadAttributes();
+
+</script>
+
+</body>
+
+</html>

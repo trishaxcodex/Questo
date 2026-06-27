@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Attribute Master</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="header">
+
+            <h2>Attribute Master</h2>
+
+            <div class="actions">
+
+                <button onclick="addAttribute()">➕</button>
+
+                <button onclick="editAttribute()">✏️</button>
+
+                <button onclick="deleteAttribute()">🗑️</button>
+
+            </div>
+
+        </div>
+
+        <div class="filters">
+
+            <input
+                type="text"
+                id="idFilter"
+                placeholder="Filter Attribute ID"
+                onkeyup="filterTable()">
+
+            <input
+                type="text"
+                id="nameFilter"
+                placeholder="Filter Attribute Name"
+                onkeyup="filterTable()">
+
+            <select
+                id="statusFilter"
+                onchange="filterTable()">
+
+                <option value="">All Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+
+            </select>
+
+        </div>
+
+        <table id="attributeTable">
+
+            <thead>
+
+                <tr>
+
+                    <th>Select</th>
+
+                    <th onclick="sortTable(1)">
+                        Attribute ID
+                    </th>
+
+                    <th onclick="sortTable(2)">
+                        Attribute Name
+                    </th>
+
+                    <th onclick="sortTable(3)">
+                        Status
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="tableBody">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+<script>
+
+let attributes = [];
+
+
+// =====================================
+// LOAD ATTRIBUTES FROM DATABASE
+// =====================================
+
+async function loadAttributes() {
+
+    try {
+
+        const response =
+            await fetch("http://localhost:3000/attributes");
+
+        attributes =
+            await response.json();
+
+        renderTable();
+
+    }
+
+    catch(error) {
+
+        console.log(error);
+
+        alert("Unable to load data");
+
+    }
+
+}
+
+
+// =====================================
+// RENDER TABLE
+// =====================================
+
+function renderTable() {
+
+    let body =
+        document.getElementById("tableBody");
+
+    body.innerHTML = "";
+
+    attributes.forEach(attr => {
+
+        body.innerHTML += `
+
+        <tr>
+
+            <td>
+
+                <input
+                    type="checkbox"
+                    value="${attr.attribute_id}">
+
+            </td>
+
+            <td>${attr.attribute_id}</td>
+
+            <td>${attr.attribute_name}</td>
+
+            <td>${attr.status}</td>
+
+        </tr>
+
+        `;
+
+    });
+
+}
+
+
+// =====================================
+// ADD ATTRIBUTE
+// =====================================
+
+function addAttribute() {
+
+    window.location.href =
+        "attribute-form.html";
+
+}
+
+
+// =====================================
+// EDIT ATTRIBUTE
+// =====================================
+
+function editAttribute(){
+
+    let checked =
+    document.querySelectorAll(
+        'input[type="checkbox"]:checked'
+    );
+
+    if(checked.length !== 1){
+
+        alert(
+            "Please select exactly one attribute"
+        );
+
+        return;
+    }
+
+    let id =
+    checked[0].value;
+
+    localStorage.setItem(
+        "editAttributeId",
+        id
+    );
+
+    window.location.href =
+    "attribute-form.html";
+
+}
+
+
+// =====================================
+// DELETE ATTRIBUTE
+// =====================================
+
+async function deleteAttribute(){
+
+    const selected =
+    document.querySelector(
+        'input[type="checkbox"]:checked'
+    );
+
+    if(!selected){
+
+        alert(
+            "Please select an attribute"
+        );
+
+        return;
+
+    }
+
+    const id =
+    selected.value;
+
+    const confirmDelete =
+    confirm(
+        "Are you sure you want to delete this attribute?"
+    );
+
+    if(!confirmDelete)
+        return;
+
+    try{
+
+        const response =
+        await fetch(
+            `http://localhost:3000/deleteAttribute/${id}`,
+            {
+                method:"DELETE"
+            }
+        );
+
+        const message =
+        await response.text();
+
+        alert(message);
+
+        loadAttributes();
+
+    }
+
+    catch(error){
+
+        console.log(error);
+
+        alert("Delete Failed");
+
+    }
+
+}
+
+
+// =====================================
+// FILTER TABLE
+// =====================================
+
+function filterTable() {
+
+    let idFilter =
+        document.getElementById("idFilter")
+        .value
+        .toLowerCase();
+
+    let nameFilter =
+        document.getElementById("nameFilter")
+        .value
+        .toLowerCase();
+
+    let statusFilter =
+        document.getElementById("statusFilter")
+        .value;
+
+    let rows =
+        document.querySelectorAll("#tableBody tr");
+
+    rows.forEach(row => {
+
+        let id =
+            row.cells[1]
+            .innerText
+            .toLowerCase();
+
+        let name =
+            row.cells[2]
+            .innerText
+            .toLowerCase();
+
+        let status =
+            row.cells[3]
+            .innerText;
+
+        let show =
+
+            id.includes(idFilter)
+
+            &&
+
+            name.includes(nameFilter)
+
+            &&
+
+            (
+                statusFilter === ""
+
+                ||
+
+                status === statusFilter
+            );
+
+        row.style.display =
+            show ? "" : "none";
+
+    });
+
+}
+
+
+// =====================================
+// SORT TABLE
+// =====================================
+
+function sortTable(column) {
+
+    attributes.sort((a, b) => {
+
+        if(column === 1)
+            return a.attribute_id.localeCompare(b.attribute_id);
+
+        if(column === 2)
+            return a.attribute_name.localeCompare(b.attribute_name);
+
+        if(column === 3)
+            return a.status.localeCompare(b.status);
+
+        return 0;
+
+    });
+
+    renderTable();
+
+}
+
+
+// =====================================
+// INITIAL LOAD
+// =====================================
+
+loadAttributes();
+
+</script>
+
+</body>
+
+</html>
